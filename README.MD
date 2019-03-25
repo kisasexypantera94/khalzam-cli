@@ -1,6 +1,7 @@
 # khalzam-cli
+[![Latest Version](https://img.shields.io/crates/v/khalzam-cli.svg)](https://crates.io/crates/khalzam-cli)
 ## About
-CLI interface for khalzam library
+CLI interface for [khalzam](https://github.com/kisasexypantera94/khalzam-rs) library
 
 ## Installation
 Using crates.io:
@@ -31,6 +32,14 @@ SUBCOMMANDS:
     recognize        Recognize audiofile
     recognize_dir    Recognize songs inside directory
 ```
+
+## Setup
+You need to create and initialize database:
+```zsh
+$ createdb -O user databasename
+$ psql -f initdb.sql databasename
+```
+
 ## Usage
 ```zsh
 $ user=kisasexypantera94 dbname=khalzam khalzam-cli recognize -i samples/disorderlive.mp3 # dbname default value is `khalzam`
