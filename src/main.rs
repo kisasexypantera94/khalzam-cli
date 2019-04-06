@@ -2,6 +2,7 @@ use clap::{App, Arg, SubCommand};
 use futures;
 use futures::future::Future;
 use khalzam::db::pg::PostgresRepo;
+use khalzam::MusicLibrary;
 use std::fs;
 use std::io::Write;
 use std::path::Path;
@@ -72,19 +73,20 @@ fn main() {
         std::env::var("dbname").unwrap_or("khalzam".to_string())
     );
 
-    let pgrepo = Arc::new(match PostgresRepo::open(&db_url) {
+    let pgrepo = match PostgresRepo::open(&db_url) {
         Ok(repo) => repo,
         Err(e) => {
             println!("Error: {}", e);
             return;
         }
-    });
+    };
+    let m_lib = Arc::new(MusicLibrary::new(pgrepo));
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let start = Instant::now();
 
         let filename = matches.value_of("filename").unwrap();
-        match pgrepo.add(filename) {
+        match m_lib.add(filename) {
             Ok(()) => println!("Added {}", filename),
             Err(e) => println!("Can't add {}: {}", filename, e),
         };
@@ -99,7 +101,7 @@ fn main() {
         let filename = matches.value_of("filename").unwrap();
         let name = String::from(Path::new(filename).file_name().unwrap().to_str().unwrap());
         println!("Recognizing `{}` ...", name);
-        match pgrepo.recognize(filename) {
+        match m_lib.recognize(filename) {
             Ok(res) => println!("Best match: {}", res),
             Err(e) => println!("Error: {}", e),
         };
@@ -112,7 +114,7 @@ fn main() {
         let start = Instant::now();
 
         let song = matches.value_of("song").unwrap();
-        match pgrepo.delete(song) {
+        match m_lib.delete(song) {
             Ok(res) => println!("{}", res),
             Err(e) => println!("Error: {}", e),
         };
@@ -134,12 +136,12 @@ fn main() {
         };
         for path in resources {
             if let Ok(path) = path {
-                let repo = pgrepo.clone();
+                let lib = m_lib.clone();
                 rt.spawn(futures::lazy(move || {
                     let name = String::from(path.path().file_name().unwrap().to_str().unwrap());
                     let path = String::from(path.path().to_str().unwrap());
                     let stdout = std::io::stdout();
-                    match repo.add(&path) {
+                    match lib.add(&path) {
                         Ok(()) => writeln!(&mut stdout.lock(), "Added {}", name),
                         Err(e) => writeln!(&mut stdout.lock(), "Can't add {}: {}", name, e),
                     }
@@ -170,7 +172,7 @@ fn main() {
                 let name = String::from(path.path().file_name().unwrap().to_str().unwrap());
                 let path = String::from(path.path().to_str().unwrap());
                 println!("Recognizing `{}` ...", name);
-                match pgrepo.recognize(&path) {
+                match m_lib.recognize(&path) {
                     Ok(res) => println!("Best match: {}\n", res),
                     Err(e) => println!("Error: {}\n", e),
                 };

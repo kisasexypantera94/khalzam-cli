@@ -9,7 +9,7 @@ edition = "2018"
 readme = "README.md"
 
 [dependencies]
-khalzam = { path = "../khalzam", version = "0.3.5" }
+khalzam = { path = "../khalzam", version = "0.3.7" }
 tokio = "0.1.17"
 futures = "0.1.25"
 tokio-threadpool = "0.1.12"

@@ -42,7 +42,8 @@ $ psql -f initdb.sql databasename
 
 ## Usage
 ```zsh
-$ user=kisasexypantera94 dbname=khalzam khalzam-cli recognize -i samples/disorderlive.mp3 # dbname default value is `khalzam`
+$ user=kisasexypantera94 dbname=khalzam \ # dbname default value is `khalzam`
+khalzam-cli recognize -i samples/disorderlive.mp3
 Recognizing `disorderlive.mp3` ...
 Best match: joydivisiondisorder
 
