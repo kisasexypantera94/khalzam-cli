@@ -1,18 +1,14 @@
 use clap::{App, Arg, SubCommand};
-use futures;
-use futures::future::Future;
 use khalzam::db::pg::PostgresRepo;
 use khalzam::MusicLibrary;
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 use std::fs;
 use std::io::Write;
 use std::path::Path;
-use std::sync::Arc;
 use std::time::Instant;
-use tokio_threadpool::ThreadPool;
 
 fn main() {
     let matches = App::new("khalzam-cli")
-        .version("0.1.0")
         .author("kisasexypantera94 <green.grinya@gmail.com>")
         .subcommand(
             SubCommand::with_name("add").about("Add song").arg(
@@ -80,7 +76,8 @@ fn main() {
             return;
         }
     };
-    let m_lib = Arc::new(MusicLibrary::new(pgrepo));
+
+    let m_lib = MusicLibrary::new(pgrepo);
 
     if let Some(matches) = matches.subcommand_matches("add") {
         let start = Instant::now();
@@ -92,7 +89,7 @@ fn main() {
         };
 
         let duration = start.elapsed();
-        println!("Done in {:?}", duration);
+        println!("\nDone in {:?}", duration);
     }
 
     if let Some(matches) = matches.subcommand_matches("recognize") {
@@ -100,14 +97,14 @@ fn main() {
 
         let filename = matches.value_of("filename").unwrap();
         let name = String::from(Path::new(filename).file_name().unwrap().to_str().unwrap());
-        println!("Recognizing `{}` ...", name);
+        println!("Recognizing `{}`...", name);
         match m_lib.recognize(filename) {
             Ok(res) => println!("Best match: {}", res),
             Err(e) => println!("Error: {}", e),
         };
 
         let duration = start.elapsed();
-        println!("Done in {:?}", duration);
+        println!("\nDone in {:?}", duration);
     }
 
     if let Some(matches) = matches.subcommand_matches("delete") {
@@ -120,13 +117,12 @@ fn main() {
         };
 
         let duration = start.elapsed();
-        println!("Done in {:?}", duration);
+        println!("\nDone in {:?}", duration);
     }
 
     if let Some(matches) = matches.subcommand_matches("add_dir") {
         let start = Instant::now();
 
-        let rt = ThreadPool::new();
         let resources = match fs::read_dir(matches.value_of("dir").unwrap()) {
             Ok(r) => r,
             Err(e) => {
@@ -134,26 +130,23 @@ fn main() {
                 return;
             }
         };
-        for path in resources {
-            if let Ok(path) = path {
-                let lib = m_lib.clone();
-                rt.spawn(futures::lazy(move || {
-                    let name = String::from(path.path().file_name().unwrap().to_str().unwrap());
-                    let path = String::from(path.path().to_str().unwrap());
-                    let stdout = std::io::stdout();
-                    match lib.add(&path) {
-                        Ok(()) => writeln!(&mut stdout.lock(), "Added {}", name),
-                        Err(e) => writeln!(&mut stdout.lock(), "Can't add {}: {}", name, e),
-                    }
-                    .unwrap();
-                    Ok(())
-                }));
-            }
-        }
 
-        rt.shutdown().wait().unwrap();
+        let paths: Vec<_> = resources.collect();
+        paths.par_iter().for_each(|path| {
+            if let Ok(path) = path {
+                let name = String::from(path.path().file_name().unwrap().to_str().unwrap());
+                let path = String::from(path.path().to_str().unwrap());
+                let stdout = std::io::stdout();
+                match m_lib.add(&path) {
+                    Ok(()) => writeln!(&mut stdout.lock(), "Added {}", name),
+                    Err(e) => writeln!(&mut stdout.lock(), "Can't add {}: {}", name, e),
+                }
+                .unwrap();
+            }
+        });
+
         let duration = start.elapsed();
-        println!("Done in {:?}", duration);
+        println!("\nDone in {:?}", duration);
     }
 
     if let Some(matches) = matches.subcommand_matches("recognize_dir") {
@@ -171,11 +164,12 @@ fn main() {
             if let Ok(path) = path {
                 let name = String::from(path.path().file_name().unwrap().to_str().unwrap());
                 let path = String::from(path.path().to_str().unwrap());
-                println!("Recognizing `{}` ...", name);
+                println!("Recognizing `{}`...", name);
                 match m_lib.recognize(&path) {
-                    Ok(res) => println!("Best match: {}\n", res),
-                    Err(e) => println!("Error: {}\n", e),
+                    Ok(res) => println!("Best match: {}", res),
+                    Err(e) => println!("Error: {}", e),
                 };
+                println!();
             }
         }
 
