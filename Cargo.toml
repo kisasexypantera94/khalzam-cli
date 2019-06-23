@@ -1,6 +1,6 @@
 [package]
 name = "khalzam-cli"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["kisasexypantera94 <green.grinya@gmail.com>"]
 description = "cli wrapper for khalzam library"
 repository = "https://github.com/kisasexypantera94/khalzam-cli"
