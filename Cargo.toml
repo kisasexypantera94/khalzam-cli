@@ -13,4 +13,4 @@ keywords = ["audio", "recognition", "shazam"]
 [dependencies]
 khalzam = { path = "../khalzam", version = "0.3.8" }
 clap = "2.32.0"
-rayon = "1.0.3"
+rayon = "1.1.0"
