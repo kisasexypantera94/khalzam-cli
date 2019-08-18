@@ -1,6 +1,6 @@
 [package]
 name = "khalzam-cli"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["kisasexypantera94 <green.grinya@gmail.com>"]
 description = "cli wrapper for khalzam library"
 repository = "https://github.com/kisasexypantera94/khalzam-cli"
@@ -11,6 +11,6 @@ categories = ["multimedia", "multimedia::audio"]
 keywords = ["audio", "recognition", "shazam"]
 
 [dependencies]
-khalzam = { path = "../khalzam", version = "0.3.8" }
+khalzam = { path = "../khalzam", version = "0.3.9" }
 clap = "2.32.0"
 rayon = "1.1.0"

@@ -64,7 +64,7 @@ fn main() {
         .get_matches();
 
     let db_url = format!(
-        "postgres://{}:@localhost/{}",
+        "host=localhost user={} dbname={}",
         std::env::var("user").unwrap_or("".to_string()),
         std::env::var("dbname").unwrap_or("khalzam".to_string())
     );
@@ -141,7 +141,7 @@ fn main() {
                     Ok(()) => writeln!(&mut stdout.lock(), "Added {}", name),
                     Err(e) => writeln!(&mut stdout.lock(), "Can't add {}: {}", name, e),
                 }
-                .unwrap();
+                .unwrap()
             }
         });
 

@@ -36,8 +36,7 @@ SUBCOMMANDS:
 ## Setup
 You need to create and initialize database:
 ```zsh
-$ createdb -O user databasename
-$ psql -f initdb.sql databasename
+$ sh ./setup.sh
 ```
 
 ## Usage
